@@ -1,4 +1,4 @@
-﻿namespace AgendaProjeto.Services
+﻿namespace AgendaProjeto.Enumerations
 {
     public enum PhoneType
     {

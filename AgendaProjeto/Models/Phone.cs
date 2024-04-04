@@ -1,4 +1,6 @@
-﻿namespace AgendaProjeto.Services
+﻿using AgendaProjeto.Enumerations;
+
+namespace AgendaProjeto.Models
 {
     public class Phone
     {

@@ -1,5 +1,8 @@
 ﻿@page "/counter"
+@using AgendaProjeto.Enumerations
+@using AgendaProjeto.Models
 @using AgendaProjeto.Services
+@using static System.Net.Mime.MediaTypeNames
 @rendermode InteractiveServer
 
 <PageTitle>Counter</PageTitle>
@@ -16,26 +19,37 @@
     private void IncrementCount()
     {
         currentCount++;
-        var teste = new Teste();
 
-        AddressBook request = new()
-            {
-                UserName = "Thiago",
-                Contacts = new()
-                {
-                    new Contact() { Name = "Abner", Phones = new List<Phone>()
-                        {
-                          new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
-                        } 
-                    },
-                   new Contact() { Name = "Joao", Phones = new List<Phone>()
-                        {
-                            new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
-                        } 
-                   }
-                }
+
+        var teste = new AddressBookService();
+
+        var contacts = new List<Contact>()
+        {
+            new Contact() { Name = "Zatta", Phones = new() { new Phone {Number = "17 98888-8888", Type = PhoneType.Mobile}}}
         };
 
-        teste.CreateDataFile(request);
+
+        teste.AddContacts("Thiago", contacts);
+
+
+        // AddressBook request = new()
+        //     {
+        //         UserName = "Thiago",
+        //         Contacts = new()
+        //         {
+        //             new Contact() { Name = "Abner", Phones = new List<Phone>()
+        //             {
+        //                 new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
+        //             } 
+        //             },
+        //            new Contact() { Name = "Joao", Phones = new List<Phone>()
+        //             {
+        //                 new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
+        //             } 
+        //            }
+        //         }
+        // };
+
+        // teste.CreateDataFile(request);
     }
 }
