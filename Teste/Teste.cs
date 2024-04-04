@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Mail;
+using System.Text;
 using System.Text.Json;
 using System.Xml;
 
@@ -30,14 +31,16 @@ namespace AgendaProjeto.Services
                 string jsonContent = JsonSerializer.Serialize(request, 
                     new JsonSerializerOptions { WriteIndented = true });
 
-                File.WriteAllText(directory, jsonContent);
-                
+                File.WriteAllText(GetPathFile(request.UserName), jsonContent);
+
             }
         }
 
         public string GetDirectory(string userName)
-            => Path.Combine("Y", folderName, userName);
-        
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), folderName, userName);
+
+        public string GetPathFile(string userName)
+           => Path.Combine(GetDirectory(userName), $"{userName}.json");
     }
 
     public class AddressBook
@@ -49,6 +52,20 @@ namespace AgendaProjeto.Services
     public class Contact
     {
         public string Name { get; set; }
-        public string PhoneNumber { get; set; } 
+        public List<Phone> Phones { get; set; } 
+    }
+
+    public class Phone
+    {
+        public string Number { get; set; }
+        public PhoneType Type { get; set; }
+    }
+
+    public enum PhoneType
+    {
+        Home,
+        Work,
+        Mobile,
+        Other
     }
 }

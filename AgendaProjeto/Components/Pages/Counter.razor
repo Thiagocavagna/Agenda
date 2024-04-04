@@ -19,14 +19,21 @@
         var teste = new Teste();
 
         AddressBook request = new()
-        {
-            UserName = "Thiago",
-            Contacts = new()
             {
-                new Contact() { Name = "Abner", PhoneNumber = "17 98888-8888"} ,
-                new Contact() { Name = "João", PhoneNumber = "17 98888-8888"}
-
-            }
+                UserName = "Thiago",
+                Contacts = new()
+                {
+                    new Contact() { Name = "Abner", Phones = new List<Phone>()
+                        {
+                          new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
+                        } 
+                    },
+                   new Contact() { Name = "Joao", Phones = new List<Phone>()
+                        {
+                            new Phone {Number = "17 98888-8888" , Type = PhoneType.Mobile}
+                        } 
+                   }
+                }
         };
 
         teste.CreateDataFile(request);
