@@ -6,7 +6,8 @@ using AgendaProjeto.Models;
 
 namespace AgendaProjeto.Services
 {
-    public class AddressBookService
+    public interface IAddressBookService { }
+    public class AddressBookService : IAddressBookService
     {
         const string folderName = "AgendaProjeto";
 

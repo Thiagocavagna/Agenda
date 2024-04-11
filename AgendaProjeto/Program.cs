@@ -1,4 +1,5 @@
 using AgendaProjeto.Components;
+using AgendaProjeto.Services;
 
 namespace AgendaProjeto
 {
@@ -11,6 +12,10 @@ namespace AgendaProjeto
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddScoped<IFileService, FileService>()
+                .AddScoped<IAddressBookService, AddressBookService>()
+                .AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
 
