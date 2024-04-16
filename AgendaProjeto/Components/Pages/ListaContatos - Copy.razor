@@ -1,0 +1,118 @@
+﻿@* @page "/contacts"
+@using AgendaProjeto.Models
+@using AgendaProjeto.Services
+@using Microsoft.FluentUI.AspNetCore.Components
+@inject IAddressBookService AddressBookService
+
+<h3>Lista de Contatos</h3>
+@if (contacts != null && contacts.Any())
+{
+    @foreach (var contact in contacts)
+    {
+        <h4>@contact.Name</h4>
+        <button class="btn btn-sm btn-primary" @onclick="() => EditContact(contact)">Editar Contato</button>
+        <button class="btn btn-sm btn-danger" @onclick="() => RemoveContact(contact)">Remover Contato</button>
+        @if (contact.Phones != null && contact.Phones.Any())
+        {           
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Telefone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var phone in contact.Phones)
+                    {
+                        <tr>
+                            <td>@phone.Number</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Nenhum telefone encontrado para este contato.</p>
+        }
+    }
+}
+else
+{
+    <p>Nenhum contato encontrado.</p>
+}
+
+@code {
+    private List<Contact> contacts;
+    IQueryable<Contact> contactsT;
+    protected override async Task OnInitializedAsync()
+    {
+        var userName = "user1"; // Substitua pelo userName do usuário logado
+
+        //AddressBookService.CreateDataFile(new AddressBook { UserName = userName });
+        AddressBookService.AddContacts(userName,
+            new List<Contact>() {
+                new Contact {
+                    Name = "Thiago",
+                    Phones = new List<Phone> {
+                        new Phone { Number = "123456789" },
+                        new Phone { Number = "987654321" }
+                    }
+                },
+                new Contact {
+                    Name = "João",
+                    Phones = new List<Phone> {
+                        new Phone { Number = "987654321" }
+                    }
+                }
+                }
+        );
+
+        var addressBook = AddressBookService.GetAddressBook(userName);
+        contacts = addressBook.Contacts;
+    }
+
+    private void EditContact(Contact contact)
+    {
+        // Lógica para edição do contato
+        // Você pode redirecionar para outra página ou exibir um modal de edição
+    }
+
+    private void RemoveContact(Contact contact)
+    {
+        // Lógica para remoção do contato
+        // Você pode exibir um modal de confirmação antes de remover o contato
+    }
+}
+
+
+
+@* @page "/weather"
+@using AgendaProjeto.Models
+@using AgendaProjeto.Services
+@using Microsoft.FluentUI.AspNetCore.Components
+@attribute [StreamRendering]
+@inject IAddressBookService _addressBookService
+
+<PageTitle>Lista de Contatos</PageTitle>
+
+<FluentDataGrid Items="@addressBook" ResizableColumns=true Pagination="@pagination" Style="height: 405px;overflow:auto;">
+    <PropertyColumn Property="@(c => c.teste2)" Sortable="true" Align="Align.Center" Tooltip="true" />
+    <PropertyColumn Property="@(c => c.teste)" Sortable="true" Align="Align.End" />
+</FluentDataGrid>
+
+<FluentPaginator State="@pagination" />
+
+@code {
+    IQueryable<AddressBook>? addressBook;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    public void GetData()
+    {
+        var addressBook = _addressBookService.;
+    }
+}
+ *@ 

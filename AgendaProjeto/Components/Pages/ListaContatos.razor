@@ -1,0 +1,92 @@
+﻿@page "/contacts"
+@using AgendaProjeto.Models
+@using AgendaProjeto.Services
+@rendermode InteractiveServer
+@inject IAddressBookService AddressBookService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+@using Microsoft.FluentUI.AspNetCore.Components
+
+<div class="d-flex justify-content-end">
+    <FluentButton Appearance="Appearance.Accent" OnClick="RegisterContact">Adicionar Novo Contato</FluentButton>
+</div>
+
+
+<h3>Lista de Contatos</h3>
+
+@if (contacts != null && contacts.Any())
+{
+    <FluentDataGrid @ref="grid" Items="@contactQueryable" Pagination="@pagination" ResizableColumns="true" Style="overflow: auto;">
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Title="Nome" Align="Align.Center" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.PrincipalPhone.Number)" Title="Número Principal" Sortable="true" Align="Align.Center" Tooltip="true" />
+        <TemplateColumn Align="@Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Info())" OnClick="@(() => ShowMoreInfo(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+
+    <FluentPaginator State="@pagination" />
+}
+else
+{
+    <p>Nenhum contato encontrado.</p>
+}
+
+@code {
+    private List<Contact> contacts;
+    IQueryable<Contact> contactQueryable;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    FluentDataGrid<Contact> grid = default!;
+    protected override async Task OnInitializedAsync()
+    {
+
+        //AddressBookService.CreateDataFile(new AddressBook { UserName = userName });
+        // AddressBookService.AddContacts(userName,
+        //     new List<Contact>() {
+        //         new Contact {
+        //             Name = "Thiago",
+        //             Phones = new List<Phone> {
+        //                 new Phone { Number = "123456789" },
+        //                 new Phone { Number = "987654321" }
+        //             }
+        //         },
+        //         new Contact {
+        //             Name = "João",
+        //             Phones = new List<Phone> {
+        //                 new Phone { Number = "987654321" }
+        //             }
+        //         }
+        //     }
+        // );
+        GetData();
+
+    }
+
+    private void GetData()
+    {
+        var userName = "user1"; // Substitua pelo userName do usuário logado
+
+        var addressBook = AddressBookService.GetAddressBook(userName);
+        contacts = addressBook.Contacts;
+        contactQueryable = contacts.AsQueryable();
+        StateHasChanged();
+    }
+
+    private async Task ShowMoreInfo(Contact contact)
+    {
+        NavigationManager.NavigateTo($"{contact.Id}/mais-informacoes");
+    }
+
+    private async void Delete(Contact contact)
+    {
+        //TODO: chamar método para deletar contato
+        AddressBookService.RemoveContact("user1", contact.Id);
+        GetData();
+    }
+
+    private void RegisterContact()
+    {
+        NavigationManager.NavigateTo("/registrar");
+    }
+}

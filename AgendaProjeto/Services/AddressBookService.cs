@@ -6,12 +6,38 @@ using AgendaProjeto.Models;
 
 namespace AgendaProjeto.Services
 {
-    public interface IAddressBookService { }
+    public interface IAddressBookService 
+    {
+        AddressBook GetAddressBook(string userName);
+        void CreateDataFile(AddressBook request);
+        void AddContact(string userName, Contact newContact);
+        void RemoveContact(string userName, Guid contactId);
+    }
     public class AddressBookService : IAddressBookService
     {
         const string folderName = "AgendaProjeto";
 
-        public void CreateDataDirectory(string userName)
+
+        public AddressBook GetAddressBook(string userName)
+        {
+            var pathFile = GetPathFile(userName);
+
+            if (!File.Exists(pathFile))
+                throw new Exception(); //Verificar a tratativa em caso de não existir
+
+            var addressBook = File.ReadAllText(pathFile);
+
+            if (string.IsNullOrEmpty(addressBook))
+                throw new Exception();
+
+            var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
+
+            if (address == null)
+                throw new Exception();
+
+            return address;
+        }
+        private void CreateDataDirectory(string userName)
         {
             if (!string.IsNullOrEmpty(userName))
             {
@@ -38,7 +64,7 @@ namespace AgendaProjeto.Services
             }
         }
 
-        public void AddContacts(string userName, List<Contact> newContacts) //TODO: deve receber o request e a lista de contatos já existente
+        public void AddContact(string userName, Contact newContact) 
         {
             if (!string.IsNullOrEmpty(userName))
             {
@@ -49,6 +75,7 @@ namespace AgendaProjeto.Services
 
                 var addressBook = File.ReadAllText(pathFile);
 
+
                 if (string.IsNullOrEmpty(addressBook))
                     throw new Exception();
 
@@ -57,7 +84,10 @@ namespace AgendaProjeto.Services
                 if (address == null)
                     throw new Exception();
 
-                address.Contacts.AddRange(newContacts);
+                if (address.Contacts == null)
+                    address.Contacts = new List<Contact>();
+
+                address.Contacts.Add(newContact);
 
                 string jsonContent = JsonSerializer.Serialize(address,
                                        new JsonSerializerOptions { WriteIndented = true });
@@ -66,7 +96,7 @@ namespace AgendaProjeto.Services
             }
         }
 
-        public void RemoveContacts(string userName, List<Contact> contacts)
+        public void RemoveContact(string userName, Guid contactId)
         {
             if (!string.IsNullOrEmpty(userName))
             {
@@ -85,10 +115,10 @@ namespace AgendaProjeto.Services
                 if (address == null)
                     throw new Exception();
 
-                var contactsToRemove = address.Contacts.Where(x => contacts.Any(r => r.Id == x.Id)).ToList();;
+                var contactToRemove = address.Contacts.SingleOrDefault(x => x.Id == contactId);
 
-                if(contactsToRemove.Any())
-                    contactsToRemove.ForEach(x => address.Contacts.Remove(x));
+                if(contactToRemove != null)
+                    address.Contacts.Remove(contactToRemove);
 
                 string jsonContent = JsonSerializer.Serialize(address,
                                        new JsonSerializerOptions { WriteIndented = true });
@@ -131,10 +161,10 @@ namespace AgendaProjeto.Services
             }
         }
 
-        public string GetDirectory(string userName)
+        private string GetDirectory(string userName)
             => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), folderName, userName);
 
-        public string GetPathFile(string userName)
+        private string GetPathFile(string userName)
            => Path.Combine(GetDirectory(userName), $"{userName}.json");
     }
 }
