@@ -1,5 +1,6 @@
 using AgendaProjeto.Components;
 using AgendaProjeto.Services;
+using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace AgendaProjeto
 {
@@ -16,6 +17,9 @@ namespace AgendaProjeto
             builder.Services.AddScoped<IFileService, FileService>()
                 .AddScoped<IAddressBookService, AddressBookService>()
                 .AddScoped<IUserService, UserService>();
+
+            builder.Services.AddHttpClient();
+            builder.Services.AddFluentUIComponents();
 
             var app = builder.Build();
 
