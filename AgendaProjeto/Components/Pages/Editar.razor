@@ -1,5 +1,41 @@
-﻿<h3>EditarContato</h3>
+﻿@page "/{id:guid}/editar"
+
+@using AgendaProjeto.Models
+@using AgendaProjeto.Services
+@using Microsoft.FluentUI.AspNetCore.Components
+@rendermode InteractiveServer
+@inject IAddressBookService AddressBookService
+@inject NavigationManager NavigationManager
+
+<h3>EditarContato</h3>
+<FluentTextField Label="Nome" @bind-Value="contact.Name"></FluentTextField>
+
+@foreach(var phone in contact.Phones)
+{
+    <FluentTextField Label="Número" @bind-Value="phone.Number"></FluentTextField>
+}
+
+<FluentButton OnClick="EditContact">Editar</FluentButton>
 
 @code {
+    [Parameter]
+    public Guid id { get; set; }
 
+    private Contact contact = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        contact = AddressBookService.GetContact("user1", id);   
+        return base.OnInitializedAsync();
+    }
+
+    private void EditContact()
+    {
+        //TODO: validar request
+
+        AddressBookService.EditContact("user1", contact);
+
+        NavigationManager.NavigateTo("/contacts");
+
+    }
 }

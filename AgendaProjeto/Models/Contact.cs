@@ -9,6 +9,5 @@
 
         public List<Phone> Phones { get; set; } = new();
         public Phone PrincipalPhone => Phones.FirstOrDefault();
-
     }
 }
