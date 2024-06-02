@@ -1,41 +1,110 @@
 ﻿@page "/{id:guid}/editar"
-
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components
+@using AgendaProjeto.Enumerations
 @using AgendaProjeto.Models
 @using AgendaProjeto.Services
-@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject IAddressBookService AddressBookService
 @inject NavigationManager NavigationManager
 
-<h3>EditarContato</h3>
-<FluentTextField Label="Nome" @bind-Value="contact.Name"></FluentTextField>
+<h3>Editar Contato</h3>
 
-@foreach(var phone in contact.Phones)
+
+@if (ErrorMessage != null)
 {
-    <FluentTextField Label="Número" @bind-Value="phone.Number"></FluentTextField>
+    <div class="alert alert-danger mt-3" role="alert">
+        <pre>@ErrorMessage</pre>
+    </div>
 }
 
-<FluentButton OnClick="EditContact">Editar</FluentButton>
+<EditForm EditContext="editContext">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="d-flex flex-row gap-2">
+        <FluentTextField Label="Nome" @bind-Value="contact.Name"></FluentTextField>
+    </div>
+
+    @foreach (var (phone, index) in contact.Phones.Select((phone, index) => (phone, index)))
+    {
+        <div class="phone-entry">
+       
+            <FluentTextField Label="Número" @bind-Value="phone.Number"></FluentTextField>
+            <select @bind="phone.Type" class="form-select">
+                @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
+                {
+                    <option value="@phoneType">@phoneType</option>
+                }
+            </select>
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemovePhoneNumber(index)" />
+        </div>
+    }
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber"></FluentButton>
+    <FluentButton OnClick="EditContact">Editar</FluentButton>
+
+</EditForm>
+
+
+<style>
+    .phone-entry {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .form-select {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+</style>
 
 @code {
     [Parameter]
     public Guid id { get; set; }
 
+    private string ErrorMessage { get; set; } = null!;
+
     private Contact contact = new();
+
+    private EditContext editContext;
 
     protected override Task OnInitializedAsync()
     {
-        contact = AddressBookService.GetContact("user1", id);   
+        contact = AddressBookService.GetContact(id);
+        editContext = new EditContext(contact);
+
         return base.OnInitializedAsync();
+    }
+
+    private void AddPhoneNumber()
+    {
+        contact.Phones.Add(new Phone());
     }
 
     private void EditContact()
     {
-        //TODO: validar request
-
-        AddressBookService.EditContact("user1", contact);
-
-        NavigationManager.NavigateTo("/contacts");
-
+        var isValid = editContext.Validate();
+        if (isValid)
+        {
+            try
+            {
+                AddressBookService.EditContact(contact);
+                NavigationManager.NavigateTo("/contacts");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
+        }
     }
+
+    private void RemovePhoneNumber(int index)
+    {
+        contact.Phones.RemoveAt(index);
+    }   
 }

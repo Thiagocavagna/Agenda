@@ -4,7 +4,6 @@ namespace AgendaProjeto.Models
 {
     public class AddressBook : Entity
     {
-        public string UserName { get; set; }
         public List<Contact> Contacts { get; set; } = new();
 
         public void AddContact(Contact newContact)
@@ -13,7 +12,14 @@ namespace AgendaProjeto.Models
                 Contacts = new List<Contact>();
 
             if (newContact != null)
+            {
+                foreach(var phone in newContact.Phones)
+                {
+                    phone.Number = phone.Number.Replace(" ", "");
+                }
+
                 Contacts.Add(newContact);
+            }
         }        
 
         public void RemoveContact(Guid contactId)
@@ -29,7 +35,7 @@ namespace AgendaProjeto.Models
 
         public bool MobilePhoneAlreadyExists(string phoneNumber)
         {
-            return Contacts.Any(x => x.Phones.Any(x => x.Number == phoneNumber && x.Type == PhoneType.Mobile));
+            return Contacts.Any(x => x.Phones.Any(x => x.Number == phoneNumber.Replace(" ", "") && x.Type == PhoneType.Mobile));
         }
 
     }

@@ -2,37 +2,107 @@
 @using AgendaProjeto.Enumerations
 @using AgendaProjeto.Models
 @using AgendaProjeto.Services
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.FluentUI.AspNetCore.Components
-@using static System.Net.Mime.MediaTypeNames
 @rendermode InteractiveServer
 @inject IAddressBookService AddressBookService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>Registrar Contato</PageTitle>
 
-<h1>Agenda</h1>
+<h1>Registrar Novo Contato</h1>
 
-<FluentTextField Label="Nome" @bind-Value="contact.Name"></FluentTextField>
-<FluentTextField Label="Número" @bind-Value="phone.Number"></FluentTextField>
-<FluentButton OnClick="RegisterContact">Registrar</FluentButton>
+@if (ErrorMessage != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @ErrorMessage
+    </div>
+}
+
+<EditForm EditContext="editContext">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <FluentTextField Label="Nome" @bind-Value="@contact.Name" />
+
+    @foreach (var (phone, index) in contact.Phones.Select((phone, index) => (phone, index)))
+    {
+        @*TODO: validar lista*@
+        <div class="phone-entry">
+            <FluentTextField TextFieldType="TextFieldType.Tel" Label="Número" @bind-Value="@phone.Number" />
+            <select @bind="@phone.Type" class="form-select">
+                @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
+                {
+                    <option value="@phoneType">@phoneType</option>
+                }
+            </select>
+
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemovePhoneNumber(index)" />
+        </div>
+        <ValidationMessage For="@(() => phone.Number)" />
+        <ValidationMessage For="@(() => phone.Type)" />
+
+    }
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber"></FluentButton>
+    <FluentButton OnClick="RegisterContact">Registrar Contato</FluentButton>
+</EditForm>
+
+
+
+<style>
+    .phone-entry {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .form-select {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+</style>
 
 @code {
+    private string ErrorMessage { get; set; } = null!;
+    private EditContext editContext;
     private Contact contact = new();
-    private Phone phone = new();
-    List<Option<string>> stringOptions = new();
 
-    protected override Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        return base.OnInitializedAsync();
+        editContext = new EditContext(contact);
     }
 
-    private void RegisterContact()
+    private void AddPhoneNumber()
     {
-        phone.Type = PhoneType.Work;
-        AddressBookService.AddContact("user1", new Contact() { Name = contact.Name, Phones = new List<Phone>() { phone } });
-
-        NavigationManager.NavigateTo("/contacts");
-
+        contact.Phones.Add(new Phone());
     }
 
+    private void RemovePhoneNumber(int index)
+    {
+        contact.Phones.RemoveAt(index);
+    }
+
+    private async Task RegisterContact()
+    {
+        var isValid = editContext.Validate();
+        if (isValid)
+        {
+            try
+            {
+                AddressBookService.AddContact(contact);
+                NavigationManager.NavigateTo("/contacts");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
+        }
+
+        StateHasChanged();
+    }
 }

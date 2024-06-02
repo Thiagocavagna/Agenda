@@ -1,199 +1,214 @@
-﻿using System.Net.Mail;
-using System.Text;
+﻿using AgendaProjeto.Models;
 using System.Text.Json;
-using System.Xml;
-using AgendaProjeto.Models;
+using System.Transactions;
 
 namespace AgendaProjeto.Services
 {
-    public interface IAddressBookService 
-    {
-        AddressBook GetAddressBook(string userName);
-        Contact GetContact(string userName, Guid id);
-        void CreateDataFile(AddressBook request);
-        void AddContact(string userName, Contact newContact);
-        void RemoveContact(string userName, Guid contactId);
-        void EditContact(string userName, Contact contact);
-    }
     public class AddressBookService : IAddressBookService
     {
         const string folderName = "AgendaProjeto";
+        const string fileName = "Agenda.json";
 
-        public Contact GetContact(string userName, Guid id)
+        public Contact GetContact(Guid id)
         {
-            var pathFile = GetPathFile(userName);
+            var pathFile = GetPathFile();
 
             if (!File.Exists(pathFile))
-                throw new Exception(); //Verificar a tratativa em caso de não existir
+                throw new Exception("Arquivo não existe");
+
 
             var addressBook = File.ReadAllText(pathFile);
 
             if (string.IsNullOrEmpty(addressBook))
-                throw new Exception();
+                throw new Exception("A Agenda está vaiza.");
 
             var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
 
             if (address == null)
-                throw new Exception();
+                throw new Exception("Falha ao ler a agenda.");
 
             return address.Contacts.SingleOrDefault(x => x.Id == id)!;
         }
 
-        public AddressBook GetAddressBook(string userName)
+        public AddressBook GetAddressBook()
         {
-            var pathFile = GetPathFile(userName);
+            var pathFile = GetPathFile();
 
             if (!File.Exists(pathFile))
-                throw new Exception(); //Verificar a tratativa em caso de não existir
+                CreateDataFile(new AddressBook());
 
             var addressBook = File.ReadAllText(pathFile);
 
             if (string.IsNullOrEmpty(addressBook))
-                throw new Exception();
+                throw new Exception("A Agenda está vaiza.");
 
             var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
 
             if (address == null)
-                throw new Exception();
+                throw new Exception("Falha ao ler a agenda.");
 
             return address;
         }
-        private void CreateDataDirectory(string userName)
+        private void CreateDataDirectory()
         {
-            if (!string.IsNullOrEmpty(userName))
-            {
-                var path = GetDirectory(userName);
-
-                Directory.CreateDirectory(path);
-            }
+            Directory.CreateDirectory(GetDirectory());            
         }
 
         public void CreateDataFile(AddressBook request)
         {
-            if (!string.IsNullOrEmpty(request.UserName))
-            {
-                var directory = GetDirectory(request.UserName);
+            var directory = GetDirectory();
 
-                if (!Directory.Exists(directory))
-                    CreateDataDirectory(request.UserName);
+            if (!Directory.Exists(directory))
+                CreateDataDirectory();
 
-                string jsonContent = JsonSerializer.Serialize(request,
-                    new JsonSerializerOptions { WriteIndented = true });
+            string jsonContent = JsonSerializer.Serialize(request,
+                new JsonSerializerOptions { WriteIndented = true });
 
-                File.WriteAllText(GetPathFile(request.UserName), jsonContent);
+            File.WriteAllText(GetPathFile(), jsonContent);
 
-            }
         }
 
-        public void AddContact(string userName, Contact newContact) 
-        {    
-            //TODO: usar o validate de data annotation para retornar erros de required
+        public void AddContact(Contact newContact) 
+        {
+            ValidateContact(newContact);
 
-            if (!string.IsNullOrEmpty(userName))
+            var pathFile = GetPathFile();
+
+            if (!File.Exists(pathFile))
+                CreateDataFile(new AddressBook());
+
+            var addressBook = File.ReadAllText(pathFile);
+
+            if (string.IsNullOrEmpty(addressBook))
+                throw new Exception("Agenda está vazia");
+
+            var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
+
+            if (address == null)
+                throw new Exception("Falha ao ler a agenda.");
+
+            foreach (var phone in newContact.Phones)
             {
-                var pathFile = GetPathFile(userName);
+                if (phone.Type == Enumerations.PhoneType.Mobile && address.MobilePhoneAlreadyExists(phone.Number))
+                    throw new Exception($"O número de celular {phone.Number} já está cadastrado para outro contato");
+            }
 
-                if (!File.Exists(pathFile))
-                    throw new Exception();
+            address.AddContact(newContact);
 
-                var addressBook = File.ReadAllText(pathFile);
+            string jsonContent = JsonSerializer.Serialize(address,
+                                    new JsonSerializerOptions { WriteIndented = true });
 
-                if (string.IsNullOrEmpty(addressBook))
-                    throw new Exception();
+            File.WriteAllText(pathFile, jsonContent);
+            
+        }
 
-                var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
+        public void RemoveContact(Guid contactId)
+        {
+            var pathFile = GetPathFile();
 
-                if (address == null)
-                    throw new Exception();
-                
-                foreach(var phone in newContact.Phones)
+            if (!File.Exists(pathFile))
+                throw new Exception("Arquivo não existe");
+
+            var addressBook = File.ReadAllText(pathFile);
+
+            if (string.IsNullOrEmpty(addressBook))
+                throw new Exception("Agenda está vazia");
+
+            var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
+
+            if (address == null)
+                throw new Exception("Falha ao ler a agenda.");
+
+            var contactToRemove = address.Contacts.SingleOrDefault(x => x.Id == contactId);
+
+            if(contactToRemove != null)
+                address.Contacts.Remove(contactToRemove);
+
+            string jsonContent = JsonSerializer.Serialize(address,
+                                    new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText(pathFile, jsonContent);
+        }
+
+        public void EditContact(Contact contact)
+        {
+            ValidateContact(contact);
+
+            var pathFile = GetPathFile();
+
+            if (!File.Exists(pathFile))
+                throw new Exception("Arquivo não existe");
+
+            var addressBook = File.ReadAllText(pathFile);
+
+            if (string.IsNullOrEmpty(addressBook))
+                throw new Exception("Agenda está vazia");
+
+            var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
+
+            if (address == null)
+                throw new Exception("Falha ao ler a agenda.");
+
+            var contactToEdit = address.Contacts.SingleOrDefault(x => x.Id == contact.Id);
+
+            if (contactToEdit == null)
+                throw new Exception("Contato não encontrado.");
+
+            foreach (var phone in contact.Phones)
+            {
+                if (phone.Type == Enumerations.PhoneType.Mobile && address.MobilePhoneAlreadyExists(phone.Number))
+                    throw new Exception($"O número de celular {phone.Number} já está cadastrado para outro contato");
+            }
+
+            contactToEdit.Phones = contact.Phones;
+            contactToEdit.Name = contact.Name;
+
+            address.RemoveContact(contactToEdit.Id);
+            address.AddContact(contactToEdit);
+
+            string jsonContent = JsonSerializer.Serialize(address,
+                                    new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText(pathFile, jsonContent);
+            
+        }
+
+        private string GetDirectory()
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), folderName);
+
+        private string GetPathFile()
+           => Path.Combine(GetDirectory(), fileName);
+
+        private void ValidateContact(Contact contact)
+        {
+            List<string> errors = new();
+            if(string.IsNullOrEmpty(contact.Name))
+                errors.Add("Nome do contato não pode estar vazio");
+
+            foreach(var phone in contact.Phones)
+            {
+                if(!string.IsNullOrEmpty(phone.Number))
                 {
-                    if (phone.Type == Enumerations.PhoneType.Mobile && address.MobilePhoneAlreadyExists(phone.Number))
-                        throw new Exception(); //TODO: retornar erro
+                    var number = phone.Number.Replace(" ", "").Replace("-", "");
+
+                    if (!number.All(char.IsDigit))
+                        errors.Add("Número de telefone inválido");
+
+                    if (number.Length != 10 && number.Length != 11)
+                        errors.Add("Formato de telefone inválido");
+                } else
+                {
+                    errors.Add("Número do telefone não pode estar vazio");
                 }
-
-                address.AddContact(newContact);
-
-                string jsonContent = JsonSerializer.Serialize(address,
-                                       new JsonSerializerOptions { WriteIndented = true });
-
-                File.WriteAllText(pathFile, jsonContent);
             }
-        }
 
-        public void RemoveContact(string userName, Guid contactId)
-        {
-            if (!string.IsNullOrEmpty(userName))
+            if(errors.Count > 0)
             {
-                var pathFile = GetPathFile(userName);
+                string message = string.Join("; \n", errors);
 
-                if (!File.Exists(pathFile))
-                    throw new Exception(); //Verificar a tratativa em caso de não existir
-
-                var addressBook = File.ReadAllText(pathFile);
-
-                if (string.IsNullOrEmpty(addressBook))
-                    throw new Exception();
-
-                var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
-
-                if (address == null)
-                    throw new Exception();
-
-                var contactToRemove = address.Contacts.SingleOrDefault(x => x.Id == contactId);
-
-                if(contactToRemove != null)
-                    address.Contacts.Remove(contactToRemove);
-
-                string jsonContent = JsonSerializer.Serialize(address,
-                                       new JsonSerializerOptions { WriteIndented = true });
-
-                File.WriteAllText(pathFile, jsonContent);
+                throw new Exception(message);
             }
         }
-
-        public void EditContact(string userName, Contact contact)
-        {
-            if (!string.IsNullOrEmpty(userName))
-            {
-                var pathFile = GetPathFile(userName);
-
-                if (!File.Exists(pathFile))
-                    throw new Exception(); //Verificar a tratativa em caso de não existir
-
-                var addressBook = File.ReadAllText(pathFile);
-
-                if (string.IsNullOrEmpty(addressBook))
-                    throw new Exception();
-
-                var address = JsonSerializer.Deserialize<AddressBook>(addressBook);
-
-                if (address == null)
-                    throw new Exception();
-
-               var contactToEdit = address.Contacts.SingleOrDefault(x => x.Id == contact.Id);
-
-                if (contactToEdit == null)
-                    throw new Exception();
-
-                contactToEdit.Phones = contact.Phones;
-                contactToEdit.Name = contact.Name;
-
-                address.RemoveContact(contactToEdit.Id);
-                address.AddContact(contactToEdit);
-
-                string jsonContent = JsonSerializer.Serialize(address,
-                                       new JsonSerializerOptions { WriteIndented = true });
-
-                File.WriteAllText(pathFile, jsonContent);
-            }
-        }
-
-        private string GetDirectory(string userName)
-            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), folderName, userName);
-
-        private string GetPathFile(string userName)
-           => Path.Combine(GetDirectory(userName), $"{userName}.json");
 
     }
 }

@@ -40,34 +40,12 @@ else
     FluentDataGrid<Contact> grid = default!;
     protected override async Task OnInitializedAsync()
     {
-
-        //AddressBookService.CreateDataFile(new AddressBook { UserName = userName });
-        // AddressBookService.AddContacts(userName,
-        //     new List<Contact>() {
-        //         new Contact {
-        //             Name = "Thiago",
-        //             Phones = new List<Phone> {
-        //                 new Phone { Number = "123456789" },
-        //                 new Phone { Number = "987654321" }
-        //             }
-        //         },
-        //         new Contact {
-        //             Name = "João",
-        //             Phones = new List<Phone> {
-        //                 new Phone { Number = "987654321" }
-        //             }
-        //         }
-        //     }
-        // );
         GetData();
-
     }
 
     private void GetData()
     {
-        var userName = "user1"; // Substitua pelo userName do usuário logado
-
-        var addressBook = AddressBookService.GetAddressBook(userName);
+        var addressBook = AddressBookService.GetAddressBook();
         contacts = addressBook.Contacts;
         contactQueryable = contacts.AsQueryable();
         StateHasChanged();
@@ -80,8 +58,7 @@ else
 
     private async void Delete(Contact contact)
     {
-        //TODO: chamar método para deletar contato
-        AddressBookService.RemoveContact("user1", contact.Id);
+        AddressBookService.RemoveContact(contact.Id);
         GetData();
     }
 
