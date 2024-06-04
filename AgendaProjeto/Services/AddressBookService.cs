@@ -220,7 +220,7 @@ namespace AgendaProjeto.Services
 
             if(errors.Count > 0)
             {
-                string message = string.Join("; \n", errors);
+                string message = string.Join(" \n", errors);
 
                 throw new Exception(message);
             }
