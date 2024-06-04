@@ -35,8 +35,13 @@ namespace AgendaProjeto.Models
 
         public bool MobilePhoneAlreadyExists(string phoneNumber)
         {
-            return Contacts.Any(x => x.Phones.Any(x => x.Number == phoneNumber.Replace(" ", "") && x.Type == PhoneType.Mobile));
+            return Contacts.Any(x => x.Phones.Any(x => x.Number == phoneNumber.Replace(" ", "") && x.Type == PhoneType.Celular));
         }
-
+        public bool MobilePhoneAlreadyExists(string phoneNumber, Guid excludingContactId)
+        {
+            return Contacts.Where(c => c.Id != excludingContactId)
+                .Any(x => x.Phones.Any(x => x.Number == phoneNumber.Replace(" ", "")
+                && x.Type == PhoneType.Celular));
+        }      
     }
 }

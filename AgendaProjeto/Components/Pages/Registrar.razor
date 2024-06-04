@@ -23,11 +23,12 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <FluentTextField Label="Nome" @bind-Value="@contact.Name" />
+    <div class="d-flex flex-row gap-2 w-200 py-2">
+        <FluentTextField Label="Nome" @bind-Value="@contact.Name" />
+    </div>
 
     @foreach (var (phone, index) in contact.Phones.Select((phone, index) => (phone, index)))
     {
-        @*TODO: validar lista*@
         <div class="phone-entry">
             <FluentTextField TextFieldType="TextFieldType.Tel" Label="Número" @bind-Value="@phone.Number" />
             <select @bind="@phone.Type" class="form-select">
@@ -44,7 +45,7 @@
 
     }
 
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber"></FluentButton>
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber">Novo Número</FluentButton>
     <FluentButton OnClick="RegisterContact">Registrar Contato</FluentButton>
 </EditForm>
 
@@ -74,6 +75,7 @@
 
     protected override void OnInitialized()
     {
+        contact.Phones.Add(new Phone());
         editContext = new EditContext(contact);
     }
 

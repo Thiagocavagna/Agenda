@@ -1,6 +1,5 @@
 ﻿using AgendaProjeto.Models;
 using System.Text.Json;
-using System.Transactions;
 
 namespace AgendaProjeto.Services
 {
@@ -89,7 +88,7 @@ namespace AgendaProjeto.Services
 
             foreach (var phone in newContact.Phones)
             {
-                if (phone.Type == Enumerations.PhoneType.Mobile && address.MobilePhoneAlreadyExists(phone.Number))
+                if (phone.Type == Enumerations.PhoneType.Celular && address.MobilePhoneAlreadyExists(phone.Number))
                     throw new Exception($"O número de celular {phone.Number} já está cadastrado para outro contato");
             }
 
@@ -154,9 +153,20 @@ namespace AgendaProjeto.Services
             if (contactToEdit == null)
                 throw new Exception("Contato não encontrado.");
 
+            var duplicatePhones = contact.Phones
+                 .GroupBy(phone => phone.Number)
+                 .Where(group => group.Count() > 1)
+                 .Select(group => group.Key);
+
+            if (duplicatePhones.Any())
+            {
+                var duplicateNumbers = string.Join(", ", duplicatePhones);
+                throw new Exception($"Os seguintes números de telefone estão duplicados dentro do mesmo contato: {duplicateNumbers}");
+            }
+
             foreach (var phone in contact.Phones)
             {
-                if (phone.Type == Enumerations.PhoneType.Mobile && address.MobilePhoneAlreadyExists(phone.Number))
+                if (phone.Type == Enumerations.PhoneType.Celular && address.MobilePhoneAlreadyExists(phone.Number, contact.Id))
                     throw new Exception($"O número de celular {phone.Number} já está cadastrado para outro contato");
             }
 
@@ -194,8 +204,14 @@ namespace AgendaProjeto.Services
                     if (!number.All(char.IsDigit))
                         errors.Add("Número de telefone inválido");
 
+                    if (phone.Type == Enumerations.PhoneType.Celular && number.Length != 11)
+                        errors.Add("Formato de celular inválido. Deve conter DDD e 11 dígitos.");
+
+                    if(phone is { Type: Enumerations.PhoneType.Casa or Enumerations.PhoneType.Outros } && number.Length != 10)
+                        errors.Add("Formato de telefone inválido. Deve conter DDD e 10 dígitos.");
+
                     if (number.Length != 10 && number.Length != 11)
-                        errors.Add("Formato de telefone inválido");
+                        errors.Add("Formato de telefone inválido. Deve conter DD e 10 ou 11 dígitos.");
                 } else
                 {
                     errors.Add("Número do telefone não pode estar vazio");

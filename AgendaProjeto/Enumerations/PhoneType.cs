@@ -2,9 +2,9 @@
 {
     public enum PhoneType
     {
-        Home,
-        Work,
-        Mobile,
-        Other
+        Casa,
+        Trabalho,
+        Celular,
+        Outros
     }
 }
