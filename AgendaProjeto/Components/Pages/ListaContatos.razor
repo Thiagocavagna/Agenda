@@ -22,6 +22,7 @@
         <PropertyColumn Property="@(c => c.PrincipalPhone.Number)" Title="Número Principal" Sortable="true" Align="Align.Center" Tooltip="true" />
         <TemplateColumn Align="@Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size16.Info())" OnClick="@(() => ShowMoreInfo(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => ShowEdit(context))" />
             <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(() => Delete(context))" />
         </TemplateColumn>
     </FluentDataGrid>
@@ -51,9 +52,14 @@ else
         StateHasChanged();
     }
 
-    private async Task ShowMoreInfo(Contact contact)
+    private async Task ShowEdit(Contact contact)
     {
         NavigationManager.NavigateTo($"{contact.Id}/editar");
+    }
+
+    private async Task ShowMoreInfo(Contact contact)
+    {
+        NavigationManager.NavigateTo($"{contact.Id}");
     }
 
     private async void Delete(Contact contact)

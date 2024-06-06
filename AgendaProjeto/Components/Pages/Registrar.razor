@@ -23,29 +23,37 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <div class="d-flex flex-row gap-2 w-200 py-2">
-        <FluentTextField Label="Nome" @bind-Value="@contact.Name" />
+    <div class="d-flex flex-column gap-2 w-200 py-2">
+        <FluentTextField Class="w-100" Label="Nome" @bind-Value="@contact.Name" />
     </div>
 
-    @foreach (var (phone, index) in contact.Phones.Select((phone, index) => (phone, index)))
-    {
-        <div class="phone-entry">
-            <FluentTextField TextFieldType="TextFieldType.Tel" Label="Número" @bind-Value="@phone.Number" />
-            <select @bind="@phone.Type" class="form-select">
-                @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
-                {
-                    <option value="@phoneType">@phoneType</option>
-                }
-            </select>
+    <div class="d-flex justify-content-between w-100 p-2">
+        <FluentLabel>Números de Telefone</FluentLabel>
+        <FluentButton IconStart="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber">Adicionar Novo Número</FluentButton>
+    </div>
 
-            <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemovePhoneNumber(index)" />
-        </div>
-        <ValidationMessage For="@(() => phone.Number)" />
-        <ValidationMessage For="@(() => phone.Type)" />
+    <div class="d-flex flex-column gap-2">
+        @foreach (var (phone, index) in contact.Phones.Select((phone, index) => (phone, index)))
+        {
+            <div class="d-flex w-100">
+                <div class="phone-entry w-100">
+                    <FluentTextField TextFieldType="TextFieldType.Tel" @bind-Value="@phone.Number" />
+                    <select @bind="@phone.Type" class="form-select">
+                        @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
+                        {
+                            <option value="@phoneType">@phoneType</option>
+                        }
+                    </select>
 
-    }
+                    <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemovePhoneNumber(index)" />
+                </div>
+                <ValidationMessage For="@(() => phone.Number)" />
+                <ValidationMessage For="@(() => phone.Type)" />
+            </div>
 
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber">Novo Número</FluentButton>
+        }
+    </div>
+
     <FluentButton OnClick="RegisterContact">Registrar Contato</FluentButton>
 </EditForm>
 
@@ -55,13 +63,12 @@
     .phone-entry {
         display: flex;
         align-items: center;
+        justify-items:center;
         gap: 10px;
         margin-bottom: 10px;
     }
 
     .form-select {
-        padding: 0.5rem;
-        font-size: 1rem;
         border-radius: 4px;
         border: 1px solid #ccc;
     }

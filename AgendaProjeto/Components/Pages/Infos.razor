@@ -1,4 +1,4 @@
-﻿@page "/{id:guid}/editar"
+﻿@page "/{id:guid}"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.FluentUI.AspNetCore.Components
 @using AgendaProjeto.Enumerations
@@ -8,7 +8,7 @@
 @inject IAddressBookService AddressBookService
 @inject NavigationManager NavigationManager
 
-<h3>Editar Contato</h3>
+<h3>Informações do Contato</h3>
 
 
 @if (ErrorMessage != null)
@@ -23,12 +23,11 @@
     <ValidationSummary />
 
     <div class="d-flex flex-column gap-2 w-200 py-2">
-        <FluentTextField Class="w-100" Label="Nome" @bind-Value="@contact.Name" />
+        <FluentTextField ReadOnly=true Class="w-100" Label="Nome" @bind-Value="@contact.Name" />
     </div>
 
     <div class="d-flex justify-content-between w-100 p-2">
         <FluentLabel>Números de Telefone</FluentLabel>
-        <FluentButton IconStart="@(new Icons.Regular.Size16.Add())" OnClick="AddPhoneNumber">Adicionar Novo Número</FluentButton>
     </div>
 
     <div class="d-flex flex-column gap-2">
@@ -36,24 +35,21 @@
         {
             <div class="d-flex w-100">
                 <div class="phone-entry w-100">
-                    <FluentTextField TextFieldType="TextFieldType.Tel" @bind-Value="@phone.Number" />
+                    <FluentTextField ReadOnly=true TextFieldType="TextFieldType.Tel" @bind-Value="@phone.Number" />
                     <select @bind="@phone.Type" class="form-select">
                         @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
                         {
-                            <option value="@phoneType">@phoneType</option>
+                            <option readonly="true" value="@phoneType">@phoneType</option>
                         }
                     </select>
 
-                    <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemovePhoneNumber(index)" />
                 </div>
                 <ValidationMessage For="@(() => phone.Number)" />
                 <ValidationMessage For="@(() => phone.Type)" />
             </div>
-
         }
     </div>
-
-    <FluentButton OnClick="EditContact">Editar Contato</FluentButton>
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => ShowEdit())">Editar Contato</FluentButton>
 
 </EditForm>
 
@@ -90,32 +86,10 @@
         editContext = new EditContext(contact);
 
         return base.OnInitializedAsync();
-    }
-
-    private void AddPhoneNumber()
-    {
-        contact.Phones.Add(new Phone());
-    }
-
-    private void EditContact()
-    {
-        var isValid = editContext.Validate();
-        if (isValid)
-        {
-            try
-            {
-                AddressBookService.EditContact(contact);
-                NavigationManager.NavigateTo("/contacts");
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-            }
-        }
-    }
-
-    private void RemovePhoneNumber(int index)
-    {
-        contact.Phones.RemoveAt(index);
     }   
+
+    private async Task ShowEdit()
+    {
+        NavigationManager.NavigateTo($"{id}/editar");
+    }
 }
