@@ -7,6 +7,7 @@
 @rendermode InteractiveServer
 @inject IAddressBookService AddressBookService
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <h3>Editar Contato</h3>
 
@@ -97,20 +98,34 @@
         contact.Phones.Add(new Phone());
     }
 
-    private void EditContact()
+    private async Task EditContact()
     {
         var isValid = editContext.Validate();
         if (isValid)
         {
-            try
+            var dialog = await DialogService.ShowDialogAsync<ConfirmDialog>(null, new DialogParameters()
+                {
+                    Height = "200px",
+                    Title = "Confirmar Edição",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                });
+
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
             {
-                AddressBookService.EditContact(contact);
-                NavigationManager.NavigateTo("/contacts");
+                try
+                {
+                    AddressBookService.EditContact(contact);
+                    NavigationManager.NavigateTo("/contacts");
+                }
+                catch (Exception ex)
+                {
+                    ErrorMessage = ex.Message;
+                }
             }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-            }
+           
         }
     }
 

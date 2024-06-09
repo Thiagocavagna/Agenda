@@ -1,6 +1,6 @@
 using AgendaProjeto.Components;
 using AgendaProjeto.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.FluentUI.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +11,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<IAddressBookService, AddressBookService>();
+
+// Adicione a configuração de erros detalhados
+builder.Services.Configure<CircuitOptions>(options =>
+{
+    options.DetailedErrors = true;
+});
 
 
 builder.Services.AddHttpContextAccessor();
@@ -25,6 +31,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
 
 app.UseHttpsRedirection();
 

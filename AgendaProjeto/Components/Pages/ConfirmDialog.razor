@@ -1,0 +1,36 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@implements IDialogContentComponent<bool>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogBody>
+    <p>Deseja realmente realizar essa operação?</p>
+
+    <FluentDialogFooter class="justify-content-between pb-3">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@ConfirmAsync">Sim</FluentButton>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Não</FluentButton>
+    </FluentDialogFooter>
+</FluentDialogBody>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public bool Content { get; set; }
+
+    private async Task ConfirmAsync()
+    {
+        await Dialog.CloseAsync(true);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync(false); 
+    }
+}

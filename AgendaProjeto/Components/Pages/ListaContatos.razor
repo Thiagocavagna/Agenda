@@ -64,8 +64,21 @@ else
 
     private async void Delete(Contact contact)
     {
-        AddressBookService.RemoveContact(contact.Id);
-        GetData();
+        var dialog = await DialogService.ShowDialogAsync<ConfirmDialog>(null, new DialogParameters()
+            {
+                Height = "200px",
+                Title = "Confirmar Exclusão",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            AddressBookService.RemoveContact(contact.Id);
+            GetData();
+        }
     }
 
     private void RegisterContact()
