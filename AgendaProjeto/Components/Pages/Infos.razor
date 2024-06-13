@@ -36,10 +36,10 @@
             <div class="d-flex w-100">
                 <div class="phone-entry w-100">
                     <FluentTextField ReadOnly=true TextFieldType="TextFieldType.Tel" @bind-Value="@phone.Number" />
-                    <select @bind="@phone.Type" class="form-select">
+                    <select disabled @bind="@phone.Type" class="form-select">
                         @foreach (PhoneType phoneType in Enum.GetValues(typeof(PhoneType)))
                         {
-                            <option readonly="true" value="@phoneType">@phoneType</option>
+                            <option disabled value="@phoneType">@phoneType</option>
                         }
                     </select>
 
@@ -49,7 +49,7 @@
             </div>
         }
     </div>
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => ShowEdit())">Editar Contato</FluentButton>
+    <FluentButton IconStart="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => ShowEdit())">Editar Contato</FluentButton>
 
 </EditForm>
 
@@ -86,7 +86,7 @@
         editContext = new EditContext(contact);
 
         return base.OnInitializedAsync();
-    }   
+    }
 
     private async Task ShowEdit()
     {

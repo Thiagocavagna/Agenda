@@ -54,7 +54,7 @@
         }
     </div>
 
-    <FluentButton OnClick="EditContact">Editar Contato</FluentButton>
+    <FluentButton IconStart="@(new Icons.Regular.Size16.Edit())" OnClick="EditContact">Editar Contato</FluentButton>
 
 </EditForm>
 
@@ -125,12 +125,12 @@
                     ErrorMessage = ex.Message;
                 }
             }
-           
+
         }
     }
 
     private void RemovePhoneNumber(int index)
     {
         contact.Phones.RemoveAt(index);
-    }   
+    }
 }
